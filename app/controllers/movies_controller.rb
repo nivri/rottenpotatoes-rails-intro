@@ -11,17 +11,32 @@ class MoviesController < ApplicationController
   end
 
   def index
+    @all_ratings = Movie.get_ratings
+    
     if params[:sort] == 'title'
-      @movies = Movie.all.order(:title)
       @sort_by = :title
       @hilite_title = 'hilite'
     elsif params[:sort] == 'release_date'
-      @movies = Movie.all.order(:release_date)
       @sort_by = :release_date
       @hilite_release_date = 'hilite'
-    else
-      @movies = Movie.all
     end
+    
+    @ratings_checked = {}
+    @sort_by_title_with_params = { sort: 'title'}
+    @sort_by_date_with_params = { sort: 'release_date'}
+    
+    if params[:ratings]
+      where_clause = {rating: params[:ratings].keys}
+      
+      @sort_by_title_with_params.merge!(:ratings => params[:ratings])
+      @sort_by_date_with_params.merge!(:ratings => params[:ratings])
+      
+      @all_ratings.each { |k, v| @ratings_checked[k] = params[:ratings].keys.include?(k) }
+    else
+      @all_ratings.each { |k, v| @ratings_checked[k] = true }
+    end
+    
+    @movies = Movie.all.where(where_clause).order(@sort_by)
   end
 
   def new
