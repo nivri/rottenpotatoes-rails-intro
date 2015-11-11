@@ -11,6 +11,13 @@ class MoviesController < ApplicationController
   end
 
   def index
+    pars = {}
+    pars[:sort] = params[:sort] || session[:sort]
+    pars[:ratings] = params[:ratings] || session[:ratings]
+    if not params[:sort] and session[:sort] or not params[:ratings] and session[:ratings]
+      redirect_to movies_path(pars) if not pars.empty?
+    end
+    
     @all_ratings = Movie.get_ratings
     
     if params[:sort] == 'title'
@@ -37,6 +44,9 @@ class MoviesController < ApplicationController
     end
     
     @movies = Movie.all.where(where_clause).order(@sort_by)
+    
+    session[:sort] = @sort_by if @sort_by
+    session[:ratings] = params[:ratings]
   end
 
   def new
